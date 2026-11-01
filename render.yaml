@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: evolab-omega-public
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /healthz
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: MAX_ACTIVE
+        value: "1"
+      - key: MAX_WALL_SECONDS
+        value: "480"
+      - key: MAX_SESSIONS
+        value: "8"

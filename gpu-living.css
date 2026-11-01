@@ -1,0 +1,5 @@
+.worldStage{position:relative}
+#livingGpu{position:absolute;left:0;top:0;width:100%!important;height:100%!important;min-height:0!important;aspect-ratio:auto!important;pointer-events:none;z-index:1;mix-blend-mode:screen}
+#livingGpu[hidden]{display:none!important}
+#gpuMode{border:1px solid rgba(112,210,180,.48);color:#cef4df;background:#133c35;border-radius:7px;padding:7px 9px;font-size:10px;cursor:pointer}
+#gpuStatus{font-size:10px;color:#9fcfb5;white-space:nowrap}

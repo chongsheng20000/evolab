@@ -1,0 +1,1 @@
+{"name":"evolab-omega-public-beta","private":true,"version":"10.7.1","description":"Independent visitors running EvoLab Omega C++ simulations via Node and Docker","scripts":{"start":"node public-server.js","test":"node --test tests/public.test.js"},"engines":{"node":">=20"}}
