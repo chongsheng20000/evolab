@@ -9,3 +9,21 @@
  catch{document.querySelector('#publicCapacity').textContent='服务器暂不可用';}}
  refresh();setInterval(refresh,16000);
 })();
+
+// Mobile quick launch
+(() => {
+  const b = document.createElement('button');
+  b.id = 'mobileWorldStart';
+  b.type = 'button';
+  b.textContent = '▶ 开始演化';
+  b.style.cssText = 'position:fixed;right:14px;bottom:18px;z-index:1100;background:#c1dfb7;color:#10281f;border:1px solid #d5e7c3;border-radius:13px;padding:14px 22px;font:700 15px system-ui;box-shadow:0 5px 28px #0009';
+  b.onclick = () => document.querySelector('#config').requestSubmit();
+  document.body.appendChild(b);
+  const s = document.createElement('style');
+  s.textContent = '@media(min-width:961px){#mobileWorldStart{display:none}}#mobileWorldStart:disabled{opacity:.6}';
+  document.head.appendChild(s);
+  setInterval(() => {
+    b.disabled = document.querySelector('#start')?.disabled || false;
+    b.textContent = b.disabled ? '世界演化中' : '▶ 开始演化';
+  }, 550);
+})();
