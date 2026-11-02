@@ -245,7 +245,7 @@ $('#csv').onclick=()=>{if(!samples.length)return;let keys=['tick','population','
 for(let [name,id] of [['mutation','mutationNumber'],['resourceRate','resourceNumber'],['season','seasonNumber'],['climate','climateNumber'],['predation','predationNumber'],['sharing','sharingNumber'],['cohesion','cohesionNumber'],['specialization','specializationNumber'],['cooperation','cooperationNumber'],['integration','integrationNumber'],['scavenging','scavengingNumber'],['plasticity','plasticityNumber'],['ecology','ecologyNumber'],['development','developmentNumber'],['morphogenesis','morphogenesisNumber'],['softBody','softBodyNumber'],['tissueCoupling','tissueCouplingNumber'],['metabolicEcology','metabolicEcologyNumber'],['regulatoryNetwork','regulatoryNetworkNumber'],['grand','grandNumber'],['habitats','habitatsNumber'],['transport','transportNumber'],['regionality','regionalityNumber']])$('#config [name='+name+']').oninput=e=>text(id,Number(e.target.value).toFixed(2));
 $('#relationHold').oninput=e=>{hold=Number(e.target.value);text('holdNumber',hold+' tick');};
 $('#relationFilter').onchange=e=>{relationFilter=e.target.value;selectedEvent=null;};
-$('#viewScale').onchange=e=>{zoom=Number(e.target.value);};$('#ecologyLayer').onchange=e=>{ecologyLayer=e.target.value;};$('#immersiveMode').onclick=e=>{const enabled=document.querySelector('.layout').classList.toggle('immersive');e.currentTarget.textContent=enabled?'显示参数':'专注观察';e.currentTarget.setAttribute('aria-pressed',String(enabled));};$('#unfocusLife').onclick=()=>{focusId=null;selectedEvent=null;lifeDossier(latest);};
+$('#viewScale').onchange=e=>{const z=Number(e.target.value);if(Number.isFinite(z)&&z>=1)zoom=z;};$('#ecologyLayer').onchange=e=>{ecologyLayer=e.target.value;};$('#immersiveMode').onclick=e=>{const enabled=document.querySelector('.layout').classList.toggle('immersive');e.currentTarget.textContent=enabled?'显示参数':'专注观察';e.currentTarget.setAttribute('aria-pressed',String(enabled));};$('#unfocusLife').onclick=()=>{focusId=null;selectedEvent=null;lifeDossier(latest);};
 $('#followInteractions').onclick=()=>{if(!latest?.individuals?.length){text('selectedRelation','尚无可以定位的生命。');return;}
  const individuals=new Map(latest.individuals.map(a=>[a[0],a]));let center=null;
  for(const b of (latest.bonds||[])){const a=individuals.get(b[0]),c=individuals.get(b[1]);if(a&&c){center=[(a[1]+c[1])/2,(a[2]+c[2])/2];break;}}
@@ -299,11 +299,45 @@ $('#playHistory').onclick=()=>{
 };
 $('#backLive').onclick=()=>{stopHistoryPlayback();historicTick=null;previous=null;if(liveFrame)render(liveFrame,true);$('#backLive').disabled=true;text('historyTime','T '+fmt(liveFrame?.tick||0)+' · 最新');};
 // Camera gestures affect observation only; the ecological state never changes.
+// v10.9: multiscale observation transforms the current C++ coordinates only.
+// Single finger pans; two fingers pinch without altering any life/world state.
 world.style.touchAction='none';
-world.addEventListener('pointerdown',e=>{pointerStart={x:e.clientX,y:e.clientY,cx:cameraX,cy:cameraY};dragged=false;world.setPointerCapture(e.pointerId);});
-world.addEventListener('pointermove',e=>{if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;if(Math.hypot(dx,dy)>7)dragged=true;if(dragged){const b=world.getBoundingClientRect();cameraX=Math.max(0,Math.min(worldWidth,pointerStart.cx-dx/b.width*worldWidth/zoom));cameraY=Math.max(0,Math.min(worldHeight,pointerStart.cy-dy/b.height*worldHeight/zoom));focusId=null;selectedEvent=null;}});
-world.addEventListener('pointerup',()=>{pointerStart=null;});world.addEventListener('pointercancel',()=>{pointerStart=null;});
-world.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(1,Math.min(128,zoom*(e.deltaY>0?.90:1.10)));if([1,2.2,3.5,8].includes(zoom))$('#viewScale').value=String(zoom);},{passive:false});
+const pointers=new Map();let pinchStart=null;
+function cameraClamp(){cameraX=Math.max(0,Math.min(worldWidth,cameraX));cameraY=Math.max(0,Math.min(worldHeight,cameraY));}
+function canvasXY(x,y){const b=world.getBoundingClientRect();return {x:(x-b.left)/b.width*W,y:(y-b.top)/b.height*H};}
+function changeZoom(factor,px=W/2,py=H/2){
+ const old=zoom;zoom=Math.max(1,Math.min(256,zoom*factor));
+ cameraX+=(px-W/2)*worldWidth/W*(1/old-1/zoom);
+ cameraY+=(py-H/2)*worldHeight/H*(1/old-1/zoom);cameraClamp();
+ const select=$('#viewScale');const opt=[...select.options].find(x=>Math.abs(Number(x.value)-zoom)<.002);
+ if(opt)select.value=opt.value;else{
+  let custom=select.querySelector('option[value="custom"]');if(!custom){custom=document.createElement('option');custom.value='custom';select.add(custom);}
+  custom.textContent='自由缩放 ×'+zoom.toFixed(1);select.value='custom';
+ }
+}
+function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+world.addEventListener('pointerdown',e=>{
+ pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ world.setPointerCapture(e.pointerId);dragged=false;
+ if(pointers.size===1){pointerStart={x:e.clientX,y:e.clientY,cx:cameraX,cy:cameraY};pinchStart=null;}
+ else if(pointers.size===2){const [a,b]=[...pointers.values()];pinchStart={distance:Math.max(1,distance(a,b))};pointerStart=null;dragged=true;}
+});
+world.addEventListener('pointermove',e=>{
+ if(!pointers.has(e.pointerId))return;
+ pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(pointers.size===2){const [a,b]=[...pointers.values()];const now=distance(a,b);
+  if(pinchStart){const m=canvasXY((a.x+b.x)*.5,(a.y+b.y)*.5);changeZoom(now/pinchStart.distance,m.x,m.y);pinchStart.distance=now;}
+  dragged=true;return;
+ }
+ if(!pointerStart)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;
+ if(Math.hypot(dx,dy)>7)dragged=true;
+ if(dragged){const b=world.getBoundingClientRect();cameraX=pointerStart.cx-dx/b.width*worldWidth/zoom;cameraY=pointerStart.cy-dy/b.height*worldHeight/zoom;cameraClamp();focusId=null;selectedEvent=null;}
+});
+function finishPointer(e){pointers.delete(e.pointerId);pinchStart=null;pointerStart=null;
+ if(pointers.size===1){const a=[...pointers.values()][0];pointerStart={x:a.x,y:a.y,cx:cameraX,cy:cameraY};}}
+world.addEventListener('pointerup',finishPointer);world.addEventListener('pointercancel',finishPointer);
+world.addEventListener('wheel',e=>{e.preventDefault();const point=canvasXY(e.clientX,e.clientY);changeZoom(e.deltaY>0?.90:1.10,point.x,point.y);},{passive:false});
+
 let lastDraw=0;function animate(t){if(t-lastDraw>25){
  if(focusId&&historicTick===null&&latest?.individuals){const a=latest.individuals.find(i=>i[0]===focusId),b=selectedEvent?latest.individuals.find(i=>i[0]===selectedEvent[2]):null;
  if(a){const tx=b?(a[1]+b[1])*.5:a[1],ty=b?(a[2]+b[2])*.5:a[2];cameraX=lerp(cameraX,tx,.10);cameraY=lerp(cameraY,ty,.10);}}

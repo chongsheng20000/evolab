@@ -1,0 +1,307 @@
+{
+  "protocol": "v10.10 predeclared paired-checkpoint root organ study",
+  "seeds": [
+    12001,
+    12002
+  ],
+  "horizon_tick": 6000,
+  "checkpoint_tick": 300,
+  "early_pruned_tick": 330,
+  "branches": [
+    "control",
+    "functional_root_off",
+    "genomic_root_prune",
+    "genomic_root_prune_then_rescue",
+    "genomic_root_prune_unrescued_330"
+  ],
+  "count": 2,
+  "observables": [
+    "births_since_start",
+    "deaths_since_start",
+    "end_pop",
+    "mean_energy",
+    "root_carriers",
+    "max_generation"
+  ],
+  "comparisons": {
+    "functional_root_off": {
+      "births_since_start": {
+        "mean_paired_delta": -89.5,
+        "median_paired_delta": -89.5,
+        "positive_seeds": 0,
+        "negative_seeds": 2,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          -86,
+          -93
+        ]
+      },
+      "deaths_since_start": {
+        "mean_paired_delta": -89.5,
+        "median_paired_delta": -89.5,
+        "positive_seeds": 0,
+        "negative_seeds": 2,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          -86,
+          -93
+        ]
+      },
+      "end_pop": {
+        "mean_paired_delta": 0.0,
+        "median_paired_delta": 0.0,
+        "positive_seeds": 0,
+        "negative_seeds": 0,
+        "zero_seeds": 2,
+        "raw_paired_deltas": [
+          0,
+          0
+        ]
+      },
+      "mean_energy": {
+        "mean_paired_delta": 3.633650000000003,
+        "median_paired_delta": 3.633650000000003,
+        "positive_seeds": 2,
+        "negative_seeds": 0,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          1.8412000000000006,
+          5.426100000000005
+        ]
+      },
+      "root_carriers": {
+        "mean_paired_delta": 10.5,
+        "median_paired_delta": 10.5,
+        "positive_seeds": 2,
+        "negative_seeds": 0,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          20,
+          1
+        ]
+      },
+      "max_generation": {
+        "mean_paired_delta": -3.5,
+        "median_paired_delta": -3.5,
+        "positive_seeds": 0,
+        "negative_seeds": 2,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          -4,
+          -3
+        ]
+      }
+    },
+    "genomic_root_prune": {
+      "births_since_start": {
+        "mean_paired_delta": -171.5,
+        "median_paired_delta": -171.5,
+        "positive_seeds": 0,
+        "negative_seeds": 2,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          -103,
+          -240
+        ]
+      },
+      "deaths_since_start": {
+        "mean_paired_delta": -171.5,
+        "median_paired_delta": -171.5,
+        "positive_seeds": 0,
+        "negative_seeds": 2,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          -103,
+          -240
+        ]
+      },
+      "end_pop": {
+        "mean_paired_delta": 0.0,
+        "median_paired_delta": 0.0,
+        "positive_seeds": 0,
+        "negative_seeds": 0,
+        "zero_seeds": 2,
+        "raw_paired_deltas": [
+          0,
+          0
+        ]
+      },
+      "mean_energy": {
+        "mean_paired_delta": 1.3289000000000009,
+        "median_paired_delta": 1.3289000000000009,
+        "positive_seeds": 1,
+        "negative_seeds": 1,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          6.658799999999999,
+          -4.000999999999998
+        ]
+      },
+      "root_carriers": {
+        "mean_paired_delta": 10.5,
+        "median_paired_delta": 10.5,
+        "positive_seeds": 2,
+        "negative_seeds": 0,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          18,
+          3
+        ]
+      },
+      "max_generation": {
+        "mean_paired_delta": -3.5,
+        "median_paired_delta": -3.5,
+        "positive_seeds": 0,
+        "negative_seeds": 2,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          -4,
+          -3
+        ]
+      }
+    },
+    "genomic_root_prune_then_rescue": {
+      "births_since_start": {
+        "mean_paired_delta": -24.5,
+        "median_paired_delta": -24.5,
+        "positive_seeds": 1,
+        "negative_seeds": 1,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          48,
+          -97
+        ]
+      },
+      "deaths_since_start": {
+        "mean_paired_delta": -24.5,
+        "median_paired_delta": -24.5,
+        "positive_seeds": 1,
+        "negative_seeds": 1,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          48,
+          -97
+        ]
+      },
+      "end_pop": {
+        "mean_paired_delta": 0.0,
+        "median_paired_delta": 0.0,
+        "positive_seeds": 0,
+        "negative_seeds": 0,
+        "zero_seeds": 2,
+        "raw_paired_deltas": [
+          0,
+          0
+        ]
+      },
+      "mean_energy": {
+        "mean_paired_delta": -0.15289999999999893,
+        "median_paired_delta": -0.15289999999999893,
+        "positive_seeds": 1,
+        "negative_seeds": 1,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          -5.664200000000001,
+          5.358400000000003
+        ]
+      },
+      "root_carriers": {
+        "mean_paired_delta": 17.0,
+        "median_paired_delta": 17.0,
+        "positive_seeds": 2,
+        "negative_seeds": 0,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          26,
+          8
+        ]
+      },
+      "max_generation": {
+        "mean_paired_delta": -1.0,
+        "median_paired_delta": -1.0,
+        "positive_seeds": 0,
+        "negative_seeds": 2,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          -1,
+          -1
+        ]
+      }
+    },
+    "genomic_root_prune_unrescued_330": {
+      "births_since_start": {
+        "mean_paired_delta": -171.5,
+        "median_paired_delta": -171.5,
+        "positive_seeds": 0,
+        "negative_seeds": 2,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          -103,
+          -240
+        ]
+      },
+      "deaths_since_start": {
+        "mean_paired_delta": -171.5,
+        "median_paired_delta": -171.5,
+        "positive_seeds": 0,
+        "negative_seeds": 2,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          -103,
+          -240
+        ]
+      },
+      "end_pop": {
+        "mean_paired_delta": 0.0,
+        "median_paired_delta": 0.0,
+        "positive_seeds": 0,
+        "negative_seeds": 0,
+        "zero_seeds": 2,
+        "raw_paired_deltas": [
+          0,
+          0
+        ]
+      },
+      "mean_energy": {
+        "mean_paired_delta": 1.3289000000000009,
+        "median_paired_delta": 1.3289000000000009,
+        "positive_seeds": 1,
+        "negative_seeds": 1,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          6.658799999999999,
+          -4.000999999999998
+        ]
+      },
+      "root_carriers": {
+        "mean_paired_delta": 10.5,
+        "median_paired_delta": 10.5,
+        "positive_seeds": 2,
+        "negative_seeds": 0,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          18,
+          3
+        ]
+      },
+      "max_generation": {
+        "mean_paired_delta": -3.5,
+        "median_paired_delta": -3.5,
+        "positive_seeds": 0,
+        "negative_seeds": 2,
+        "zero_seeds": 0,
+        "raw_paired_deltas": [
+          -4,
+          -3
+        ]
+      }
+    }
+  },
+  "limitations": [
+    "All branches share one simulated environment per seed but diverge following intervention; no pooled ecological interaction across different branches.",
+    "Genome pruning deletes target-type nodes and all descendants; effects can involve loss of supporting tissue as well as target function.",
+    "Rescue restores old genotypes only for surviving original UIDs, never for descendants; joints reset and existing cargo is released to grid, hence rescue is not a perfect reverse-time operation.",
+    "High-population worlds can be capacity-saturated: birth and death count differences may not reflect adaptive fitness.",
+    "These fixed rules and finite seeds do not prove sustained open-ended evolution or emergent civilization."
+  ]
+}

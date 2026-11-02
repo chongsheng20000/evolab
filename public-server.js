@@ -44,7 +44,8 @@ function resolveSession(req,res){const raw=(req.headers.cookie||'').split(';').m
 }
 async function readInput(req,max=16384){const chunks=[];let size=0;for await(const c of req){size+=c.length;if(size>max)throw Object.assign(new Error('请求参数过大'),{httpCode:413});chunks.push(c);}let obj;try{obj=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw Object.assign(new Error('无效 JSON'),{httpCode:400});}if(!obj||typeof obj!=='object'||Array.isArray(obj))throw Object.assign(new Error('参数必须是对象'),{httpCode:400});return obj;}
 function validateOrigin(req){const origin=req.headers.origin;if(!origin)return false;try{const o=new URL(origin),host=req.headers.host;return o.host===host&&(o.protocol==='https:'||o.protocol==='http:');}catch{return false;}}
-function acceptedOpts(input){if(input.resume===true)throw Object.assign(new Error('公测暂不支持服务端继续已完成的实验；请下载检查点在本地恢复'),{httpCode:400});
+function acceptedOpts(input){if(input.organAblation!==undefined&&!['none','absorber','digester','root'].includes(input.organAblation))throw Object.assign(new Error('器官失能类型无效'),{httpCode:422});
+ if(input.resume===true)throw Object.assign(new Error('公测暂不支持服务端继续已完成的实验；请下载检查点在本地恢复'),{httpCode:400});
  const max={initial:150,capacity:350,ticks:12000,worldScale:2,bodyCap:160,neuronCap:64,edgeCap:256,threads:2,visual:160,founderNodes:80,founderNeurons:48,rate:5000,checkpointEvery:12000};
  const min={initial:20,capacity:20,ticks:100,worldScale:1,bodyCap:40,neuronCap:32,edgeCap:128,threads:1,visual:0,founderNodes:0,founderNeurons:0,rate:0,checkpointEvery:100};
  const defaults={seed:crypto.randomInt(1,4294967295),initial:75,capacity:200,ticks:5000,worldScale:2,bodyCap:96,neuronCap:48,edgeCap:192,threads:1,visual:90,sample:100,rate:100,checkpointEvery:2000,founderNodes:0,founderNeurons:0};
@@ -59,8 +60,8 @@ function acceptedOpts(input){if(input.resume===true)throw Object.assign(new Erro
  return o;
 }
 async function handler(req,res){safeHeaders(res);let pathname;try{pathname=new URL(req.url,'http://localhost').pathname;}catch{return respond(res,400,{error:'无效路径'});}
- if(req.method==='GET'&&pathname==='/healthz')return respond(res,200,{ok:true,version:'v10.7-public-beta',active:activeCount(),maxActive:MAX_ACTIVE});
- if(req.method==='GET'&&pathname==='/api/public/info')return respond(res,200,{version:'v10.7-public-beta',active:activeCount(),maxActive:MAX_ACTIVE,capacity:350,maxTicks:12000,sessionPersistence:'memory; download checkpoints before restart',note:'每位访客独立 C++ 模拟；免费云实例可能休眠'});
+ if(req.method==='GET'&&pathname==='/healthz')return respond(res,200,{ok:true,version:'v10.8-functional-ecology',active:activeCount(),maxActive:MAX_ACTIVE});
+ if(req.method==='GET'&&pathname==='/api/public/info')return respond(res,200,{version:'v10.8-functional-ecology',active:activeCount(),maxActive:MAX_ACTIVE,capacity:350,maxTicks:12000,sessionPersistence:'memory; download checkpoints before restart',note:'每位访客独立 C++ 模拟；免费云实例可能休眠'});
  if(req.method==='GET'&&pathname==='/'){res.writeHead(302,{Location:'/native.html'});return res.end();}
  if(req.method==='GET'&&staticMap[pathname]){
    if(pathname==='/native.html'&&!resolveSession(req,res))return respond(res,503,{error:'访客会话已达上限'});

@@ -29,6 +29,16 @@ test('isolated public beta API and quotas',async()=>{
   let ss;for(let i=0;i<100;i++){ss=(await get('/api/native/status',c2)).body;if(['completed','error'].includes(ss.phase))break;await new Promise(r=>setTimeout(r,50));}
   assert.equal(ss.phase,'completed');assert.ok(ss.last.tick>=100);
   assert.equal((await get('/api/native/status',c1)).body.config.seed,301,'session config remains private');
+  // v10.9: public organ interventions reach native C++ without bypassing quotas.
+  await new Promise(r=>setTimeout(r,850));
+  assert.equal((await get('/api/native/start',c2,'POST',{seed:305,initial:70,capacity:140,ticks:100,sample:50,rate:500,worldScale:1,organAblation:'root',metabolicEcology:1,ecology:1})).code,202);
+  let r109;for(let i=0;i<100;i++){r109=(await get('/api/native/status',c2)).body;if(['completed','error'].includes(r109.phase))break;await new Promise(r=>setTimeout(r,50));}
+  assert.equal(r109.phase,'completed');
+  assert.equal(r109.last.organAblation,'root');
+  assert.equal(r109.last.functionalUptake[2],0);
+  assert.equal(r109.last.anchorVelocityLoss,0);
+  assert.equal(r109.last.organCompetition.length,3);
+  assert.equal((await get('/api/native/start',c1,'POST',{seed:301,initial:70,capacity:140,ticks:100,sample:50,organAblation:'fabricated'})).code,422);
   console.log('PUBLIC BETA TEST PASS: isolated native worlds, quota, same-origin, per-session frames, real C++');
  }finally{server?.kill('SIGTERM');await new Promise(r=>setTimeout(r,300));fs.rmSync(tmp,{recursive:true,force:true});}
 });

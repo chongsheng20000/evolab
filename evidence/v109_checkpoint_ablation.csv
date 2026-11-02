@@ -1,0 +1,5 @@
+seed,starting_checkpoint_sha256,checkpoint_tick,final_tick,intervention,alive,births_cumulative,deaths_cumulative,max_generation,food_flux_tick,detritus_flux_tick,root_flux_tick,root_velocity_loss_tick,ledger_start_tick,absorber_carrier_parent_births,absorber_carrier_deaths,absorber_carrier_exposure,digester_carrier_parent_births,digester_carrier_deaths,digester_carrier_exposure,root_carrier_parent_births,root_carrier_deaths,root_carrier_exposure
+49391,9919bf155a853b1082ee267cdd35b8944884913fbf6a2870c84b46404c708a43,300,750,none,160,570,490,7,2.0448,0.7072,3.4958,7.5942,300,100,110,23457,144,139,31070,157,140,32298
+49391,9919bf155a853b1082ee267cdd35b8944884913fbf6a2870c84b46404c708a43,300,750,absorber,160,570,490,8,0.0,0.6103,3.2907,5.7151,300,101,114,22690,144,139,31130,121,128,27172
+49391,9919bf155a853b1082ee267cdd35b8944884913fbf6a2870c84b46404c708a43,300,750,digester,160,569,489,8,2.6771,0.0,2.8029,5.1083,300,115,115,25308,135,139,30083,146,137,31295
+49391,9919bf155a853b1082ee267cdd35b8944884913fbf6a2870c84b46404c708a43,300,750,root,160,573,493,8,2.2731,0.6839,0.0,0.0,300,98,108,22970,116,125,26112,139,142,30180

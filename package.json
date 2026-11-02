@@ -1,1 +1,18 @@
-{"name":"evolab-omega-public-beta","private":true,"version":"10.7.1","description":"Independent visitors running EvoLab Omega C++ simulations via Node and Docker","scripts":{"start":"node public-server.js","test":"node --test tests/public.test.js"},"engines":{"node":">=20"}}
+{
+  "name": "evolab-omega-public-beta",
+  "private": true,
+  "version": "10.10.0",
+  "description": "Independent visitors running EvoLab Omega C++ simulations via Node and Docker",
+  "scripts": {
+    "start": "node public-server.js",
+    "test": "node --test tests/public.test.js",
+    "test:functional": "bash tests/test-functional-v108.sh",
+    "test:competition": "python3 tests/test-competition-v109.py",
+    "test:genomic": "python3 tests/test-genomic-v1010.py",
+    "study:causal": "python3 tests/causal-study-v1010.py",
+    "study:merge": "python3 tests/combine-study-v1010.py"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
