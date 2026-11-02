@@ -1,0 +1,11 @@
+{
+  "seed_manifest": [
+    13101,
+    13102,
+    13103
+  ],
+  "horizon_tick": 5000,
+  "branches": 33,
+  "trajectory_rows": 627,
+  "limitations": "This is a 3-seed horizon stress subset, not an independent 12-seed long-horizon replicates; the 3 seeds are included in the 2200-tick study."
+}

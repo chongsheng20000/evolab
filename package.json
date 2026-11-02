@@ -1,7 +1,7 @@
 {
   "name": "evolab-omega-public-beta",
   "private": true,
-  "version": "10.10.0",
+  "version": "10.11.0",
   "description": "Independent visitors running EvoLab Omega C++ simulations via Node and Docker",
   "scripts": {
     "start": "node public-server.js",
@@ -10,7 +10,11 @@
     "test:competition": "python3 tests/test-competition-v109.py",
     "test:genomic": "python3 tests/test-genomic-v1010.py",
     "study:causal": "python3 tests/causal-study-v1010.py",
-    "study:merge": "python3 tests/combine-study-v1010.py"
+    "study:merge": "python3 tests/combine-study-v1010.py",
+    "test:multienv": "python3 tests/test-multienv-v1011.py",
+    "study:multienv": "python3 tests/multienv-v1011.py",
+    "study:multienv-merge": "python3 tests/merge-multienv-v1011.py",
+    "study:lineage-audit": "python3 tests/lineage-audit-v1011.py"
   },
   "engines": {
     "node": ">=20"

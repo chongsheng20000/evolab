@@ -1,0 +1,570 @@
+{
+  "model_version": "10.11",
+  "status": "exploratory within-model evidence, not open-ended evolution proof",
+  "fixed_seeds": [
+    13103,
+    13104
+  ],
+  "predeclared_seed_universe": [
+    13101,
+    13102,
+    13103,
+    13104,
+    13105,
+    13106,
+    13107,
+    13108,
+    13109,
+    13110,
+    13111,
+    13112,
+    13113,
+    13114,
+    13115,
+    13116,
+    13117,
+    13118,
+    13119,
+    13120,
+    13121,
+    13122,
+    13123,
+    13124
+  ],
+  "checkpoint_tick": 300,
+  "horizon_tick": 2200,
+  "world_scale": 2,
+  "population_capacity": 145,
+  "conditions": {
+    "reference": {
+      "resource": 0.65,
+      "cost": 0,
+      "isolation": 0
+    },
+    "scarce": {
+      "resource": 0.16,
+      "cost": 0,
+      "isolation": 0
+    },
+    "abundant": {
+      "resource": 1.6,
+      "cost": 0,
+      "isolation": 0
+    },
+    "migration_cost": {
+      "resource": 0.65,
+      "cost": 2,
+      "isolation": 0
+    },
+    "isolated_regions": {
+      "resource": 0.65,
+      "cost": 0,
+      "isolation": 0.92
+    }
+  },
+  "branch_count": 22,
+  "trace_count": 176,
+  "experiment_duration_seconds": 17.63,
+  "comparisons": [
+    {
+      "scenario": "reference",
+      "metric": "births_since_checkpoint",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -19.5,
+      "median_pruned_minus_control": -19.5,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -23,
+        -16
+      ]
+    },
+    {
+      "scenario": "reference",
+      "metric": "deaths_since_checkpoint",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -19.5,
+      "median_pruned_minus_control": -19.5,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -23,
+        -16
+      ]
+    },
+    {
+      "scenario": "reference",
+      "metric": "max_generation",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": 0.0,
+      "median_pruned_minus_control": 0.0,
+      "positive": 1,
+      "negative": 1,
+      "equal": 0,
+      "paired_deltas": [
+        -1,
+        1
+      ]
+    },
+    {
+      "scenario": "reference",
+      "metric": "root_carriers",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -32.5,
+      "median_pruned_minus_control": -32.5,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -54,
+        -11
+      ]
+    },
+    {
+      "scenario": "reference",
+      "metric": "root_uptake",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -3.48845,
+      "median_pruned_minus_control": -3.48845,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -5.9674000000000005,
+        -1.0095
+      ]
+    },
+    {
+      "scenario": "reference",
+      "metric": "regional_migration_events",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -26.5,
+      "median_pruned_minus_control": -26.5,
+      "positive": 1,
+      "negative": 1,
+      "equal": 0,
+      "paired_deltas": [
+        -97,
+        44
+      ]
+    },
+    {
+      "scenario": "reference",
+      "metric": "blocked_crossings",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": 0.0,
+      "median_pruned_minus_control": 0.0,
+      "positive": 0,
+      "negative": 0,
+      "equal": 2,
+      "paired_deltas": [
+        0,
+        0
+      ]
+    },
+    {
+      "scenario": "scarce",
+      "metric": "births_since_checkpoint",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -21.0,
+      "median_pruned_minus_control": -21.0,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -13,
+        -29
+      ]
+    },
+    {
+      "scenario": "scarce",
+      "metric": "deaths_since_checkpoint",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -21.0,
+      "median_pruned_minus_control": -21.0,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -13,
+        -29
+      ]
+    },
+    {
+      "scenario": "scarce",
+      "metric": "max_generation",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": 0.5,
+      "median_pruned_minus_control": 0.5,
+      "positive": 1,
+      "negative": 0,
+      "equal": 1,
+      "paired_deltas": [
+        1,
+        0
+      ]
+    },
+    {
+      "scenario": "scarce",
+      "metric": "root_carriers",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -37.0,
+      "median_pruned_minus_control": -37.0,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -60,
+        -14
+      ]
+    },
+    {
+      "scenario": "scarce",
+      "metric": "root_uptake",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -3.6205,
+      "median_pruned_minus_control": -3.6205,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -5.7027,
+        -1.5383
+      ]
+    },
+    {
+      "scenario": "scarce",
+      "metric": "regional_migration_events",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": 18.0,
+      "median_pruned_minus_control": 18.0,
+      "positive": 2,
+      "negative": 0,
+      "equal": 0,
+      "paired_deltas": [
+        24,
+        12
+      ]
+    },
+    {
+      "scenario": "scarce",
+      "metric": "blocked_crossings",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": 0.0,
+      "median_pruned_minus_control": 0.0,
+      "positive": 0,
+      "negative": 0,
+      "equal": 2,
+      "paired_deltas": [
+        0,
+        0
+      ]
+    },
+    {
+      "scenario": "abundant",
+      "metric": "births_since_checkpoint",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -14.0,
+      "median_pruned_minus_control": -14.0,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -11,
+        -17
+      ]
+    },
+    {
+      "scenario": "abundant",
+      "metric": "deaths_since_checkpoint",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -14.0,
+      "median_pruned_minus_control": -14.0,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -11,
+        -17
+      ]
+    },
+    {
+      "scenario": "abundant",
+      "metric": "max_generation",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": 0.5,
+      "median_pruned_minus_control": 0.5,
+      "positive": 1,
+      "negative": 0,
+      "equal": 1,
+      "paired_deltas": [
+        0,
+        1
+      ]
+    },
+    {
+      "scenario": "abundant",
+      "metric": "root_carriers",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -29.0,
+      "median_pruned_minus_control": -29.0,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -45,
+        -13
+      ]
+    },
+    {
+      "scenario": "abundant",
+      "metric": "root_uptake",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -3.45495,
+      "median_pruned_minus_control": -3.45495,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -5.748200000000001,
+        -1.1617000000000002
+      ]
+    },
+    {
+      "scenario": "abundant",
+      "metric": "regional_migration_events",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": 32.0,
+      "median_pruned_minus_control": 32.0,
+      "positive": 1,
+      "negative": 1,
+      "equal": 0,
+      "paired_deltas": [
+        90,
+        -26
+      ]
+    },
+    {
+      "scenario": "abundant",
+      "metric": "blocked_crossings",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": 0.0,
+      "median_pruned_minus_control": 0.0,
+      "positive": 0,
+      "negative": 0,
+      "equal": 2,
+      "paired_deltas": [
+        0,
+        0
+      ]
+    },
+    {
+      "scenario": "migration_cost",
+      "metric": "births_since_checkpoint",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -11.5,
+      "median_pruned_minus_control": -11.5,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -2,
+        -21
+      ]
+    },
+    {
+      "scenario": "migration_cost",
+      "metric": "deaths_since_checkpoint",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -11.5,
+      "median_pruned_minus_control": -11.5,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -2,
+        -21
+      ]
+    },
+    {
+      "scenario": "migration_cost",
+      "metric": "max_generation",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": 0.5,
+      "median_pruned_minus_control": 0.5,
+      "positive": 1,
+      "negative": 0,
+      "equal": 1,
+      "paired_deltas": [
+        1,
+        0
+      ]
+    },
+    {
+      "scenario": "migration_cost",
+      "metric": "root_carriers",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -28.5,
+      "median_pruned_minus_control": -28.5,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -43,
+        -14
+      ]
+    },
+    {
+      "scenario": "migration_cost",
+      "metric": "root_uptake",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -2.928,
+      "median_pruned_minus_control": -2.928,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -4.4813,
+        -1.3747000000000003
+      ]
+    },
+    {
+      "scenario": "migration_cost",
+      "metric": "regional_migration_events",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -13.0,
+      "median_pruned_minus_control": -13.0,
+      "positive": 1,
+      "negative": 1,
+      "equal": 0,
+      "paired_deltas": [
+        7,
+        -33
+      ]
+    },
+    {
+      "scenario": "migration_cost",
+      "metric": "blocked_crossings",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": 0.0,
+      "median_pruned_minus_control": 0.0,
+      "positive": 0,
+      "negative": 0,
+      "equal": 2,
+      "paired_deltas": [
+        0,
+        0
+      ]
+    },
+    {
+      "scenario": "isolated_regions",
+      "metric": "births_since_checkpoint",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -37.5,
+      "median_pruned_minus_control": -37.5,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -16,
+        -59
+      ]
+    },
+    {
+      "scenario": "isolated_regions",
+      "metric": "deaths_since_checkpoint",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -39.0,
+      "median_pruned_minus_control": -39.0,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -16,
+        -62
+      ]
+    },
+    {
+      "scenario": "isolated_regions",
+      "metric": "max_generation",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -0.5,
+      "median_pruned_minus_control": -0.5,
+      "positive": 0,
+      "negative": 1,
+      "equal": 1,
+      "paired_deltas": [
+        0,
+        -1
+      ]
+    },
+    {
+      "scenario": "isolated_regions",
+      "metric": "root_carriers",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -53.0,
+      "median_pruned_minus_control": -53.0,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -91,
+        -15
+      ]
+    },
+    {
+      "scenario": "isolated_regions",
+      "metric": "root_uptake",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -6.0735,
+      "median_pruned_minus_control": -6.0735,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -10.5272,
+        -1.6198
+      ]
+    },
+    {
+      "scenario": "isolated_regions",
+      "metric": "regional_migration_events",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -18.0,
+      "median_pruned_minus_control": -18.0,
+      "positive": 0,
+      "negative": 2,
+      "equal": 0,
+      "paired_deltas": [
+        -6,
+        -30
+      ]
+    },
+    {
+      "scenario": "isolated_regions",
+      "metric": "blocked_crossings",
+      "n_seed_pairs": 2,
+      "mean_pruned_minus_control": -1527.5,
+      "median_pruned_minus_control": -1527.5,
+      "positive": 1,
+      "negative": 1,
+      "equal": 0,
+      "paired_deltas": [
+        2268,
+        -5323
+      ]
+    }
+  ],
+  "methodological_limits": [
+    "Intervention branches share an initial checkpoint within each seed, not a single interacting world after branching.",
+    "Structural pruning removes root nodes and their dependent descendants, and changes several physical functions.",
+    "Root benefit cannot be read from birth count alone, especially near capacity.",
+    "Cross-environment resource and barrier settings are researcher interventions, not evolved traits.",
+    "Barriers are imposed at 1300/850 unit cell boundaries with corridor width determined by isolation.",
+    "Migration cost is metabolic loss at an actual allowed regional crossing; blocked events have no such cost.",
+    "Only sampled live organisms appear in the GUI genealogy; full births require native lineage CSV.",
+    "Model mechanisms, finite seeds and horizon cannot demonstrate sustained adaptive innovation or new species."
+  ]
+}

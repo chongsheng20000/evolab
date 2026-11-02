@@ -8,6 +8,21 @@ let liveFrame=null,historyFrames=[],historicTick=null,selectedRate=1,serverPhase
 let frameInterval=800,lastFrameArrived=0,dragged=false,pointerStart=null;
 let selectedRegion=-1;let selectedEcotype=-1;let ecologyLayer='nutrient',worldTimeStamp=0,organismMoments=[],lastMoment=null,lastRenderTick=-1;
 const displayState={};const sampleMomentMax=24;
+// Observer-only sample history: no code here changes real native reproduction.
+// The archive covers only sampled living individuals, NOT every historical birth.
+const sampledAncestry=new Map();const maxSampledAncestors=2500;
+function observeSampledLineage(state){
+ if(!Array.isArray(state?.lineageLinks))return;
+ for(const link of state.lineageLinks){
+  if(!Array.isArray(link)||link.length<9)continue;
+  const uid=Number(link[0]);if(!Number.isSafeInteger(uid))continue;
+  if(!sampledAncestry.has(uid)&&sampledAncestry.size>=maxSampledAncestors){
+    sampledAncestry.delete(sampledAncestry.keys().next().value);
+  }
+  sampledAncestry.set(uid,{link:link.slice(),tick:state.tick});
+ }
+}
+
 const roleNames=['资源采集','残骸利用','运动探索','环境改造','混合策略'];
 const roleColors=['#94d8b8','#c6aaea','#8cc7e6','#e2b780','#8ea79c'];
 function addMoment(t,kind,summary){if(organismMoments.some(m=>m.tick===t&&m.kind===kind))return;
@@ -43,8 +58,28 @@ function portrait(a){const cv=$('#lifePortrait');if(!cv)return;const ctx=cv.getC
  ctx.fillStyle='#96b8b0';ctx.font='10px system-ui';ctx.textAlign='left';ctx.fillText(n+' 发育节点 · '+active.length+' 已表达',11,h-11);
 }
 function lifeDossier(s){const el=$('#lifeDetails');if(!el)return;let a=s?.individuals?.find(i=>i[0]===focusId);portrait(a);if(!a){el.textContent=focusId?'当前采样中未发现这只生命；它可能死亡或离开抽样范围。':'点击生态场中的生命，查看其实际身体与遗传状态。';return;}
- const details=[['世代',a[5]],['生命年龄',fmt(a[8])+' tick'],['能量',fmt(a[4])],['身体部件',a[6]],['神经元',a[7]],['遗传功能倾向',a[12]>.18?'资源采集':a[12]<-.18?'防护 / 残骸机会':'混合'],['反馈连接',a[14]||0],['资源梯度神经',a[18]||0],['遗传资源偏好',(a[15]||0).toFixed(2)],['环境改造倾向',(a[16]||0).toFixed(2)],['组织连接',fmt((s.bonds||[]).filter(b=>b[0]===focusId||b[1]===focusId).length)]];
+ const currentLink=(s.lineageLinks||[]).find(x=>x[0]===focusId);
+ const tracked=currentLink||sampledAncestry.get(focusId)?.link;
+ const parent=tracked?.[1] ? sampledAncestry.get(tracked[1])?.link : null;
+ const inherited=tracked?[['父代 UID',tracked[1]||'原始个体'],['始祖 UID',tracked[2]],['遗传结构哈希',tracked[4]],['功能器官（吸收/分解/根）',tracked.slice(6,9).join(' / ')]]:[];
+ if(parent){
+   const diffs=[6,7,8].map(idx=>tracked[idx]-parent[idx]);
+   inherited.push(['与观测父代的器官数差',diffs.map(d=>d>0?'+'+d:String(d)).join(' / ')]);
+ }
+ const organismTypes=[2,5,7].map(t=>(a[11]||[]).filter(n=>n[1]===t).length);
+ const scale=Number(s.worldScale||1),zoneX=Math.min(scale-1,Math.floor(a[1]/1300)),zoneY=Math.min(scale-1,Math.floor(a[2]/850));
+ const region=s.regionProfiles?.[zoneY*scale+zoneX];
+ const populationEvidence=[['真实器官（吸收/分解/根）',organismTypes.join(' / ')],
+  ['当前所在区域',`${zoneX+1} × ${zoneY+1}`],
+  ['区域资源供给系数',region?.resourceFactor??'未提供'],
+  ['区域活跃种群',region?.population??'未提供'],
+  ['全世界同类器官携带者',(s.functionalCarriers||[]).join(' / ')||'未提供'],
+  ['本次采样的全群器官摄取',(s.functionalUptake||[]).map(v=>Number(v).toFixed(3)).join(' / ')||'未提供']];
+ const details=[...inherited,...populationEvidence,['世代',a[5]],['生命年龄',fmt(a[8])+' tick'],['能量',fmt(a[4])],['身体部件',a[6]],['神经元',a[7]],['遗传功能倾向',a[12]>.18?'资源采集':a[12]<-.18?'防护 / 残骸机会':'混合'],['反馈连接',a[14]||0],['资源梯度神经',a[18]||0],['遗传资源偏好',(a[15]||0).toFixed(2)],['环境改造倾向',(a[16]||0).toFixed(2)],['组织连接',fmt((s.bonds||[]).filter(b=>b[0]===focusId||b[1]===focusId).length)]];
  el.replaceChildren();const title=document.createElement('strong');title.className='dossierName';title.textContent='生命 #'+focusId;el.append(title);for(let [k,v] of details){const cell=document.createElement('div');cell.className='dossierValue';const small=document.createElement('small');small.textContent=k;const b=document.createElement('b');b.textContent=v;cell.append(small,b);el.append(cell);}
+ if(tracked){const hint=document.createElement('small');hint.style.cssText='grid-column:1/-1;color:#87b9ab;line-height:1.5';hint.textContent=parent?'父代与子代均有真实采样记录；数量差仅描述继承结果。区域和全群摄取不是个人因果效应，也不证明适应优势。':'仅显示当前生命的真实遗传记录；父代可能没有进入采样，不能推断其具体变异。';el.append(hint);
+   if(parent){const back=document.createElement('button');back.type='button';back.textContent='定位已观测父代 #'+tracked[1];back.style.cssText='grid-column:1/-1;background:#153c35;color:#bbebd9;border:1px solid #4d8270;border-radius:7px;padding:8px';back.onclick=()=>{const match=s.individuals?.find(x=>x[0]===tracked[1]);if(match){focusId=match[0];cameraX=match[1];cameraY=match[2];lifeDossier(s);}else{back.textContent='父代仅有历史采样，当前视野已无法定位';}};el.append(back);}
+ }
 }
 
 const speedButtons=[...document.querySelectorAll('[data-rate]')];
@@ -209,7 +244,7 @@ let newScale=Number(s.worldScale||1);if(newScale!==worldScale){worldScale=newSca
  if(newScale!==1&&cameraX===650&&cameraY===425){cameraX=worldWidth/2;cameraY=worldHeight/2;}
  updateRegions(s);
  drawRegionalMorphTimeline(s);
- if(seek||latest&&s.tick<latest.tick){previous=null;}else if(latest&&s.tick!==latest.tick){previous=latest;}let oldState=latest;latest=s;
+ if(seek||latest&&s.tick<latest.tick){previous=null;}else if(latest&&s.tick!==latest.tick){previous=latest;}let oldState=latest;latest=s;observeSampledLineage(s);
  if(!seek&&historicTick===null&&s.tick!==lastRenderTick){recordMoments(s,oldState);lastRenderTick=s.tick;}
  const now=performance.now();if(!seek&&lastFrameArrived)frameInterval=Math.max(80,Math.min(1050,now-lastFrameArrived));if(!seek)lastFrameArrived=now;
  arrival=now;
@@ -238,7 +273,7 @@ async function refresh(){try{let r=await fetch('/api/native/status',{cache:'no-s
  text('checkpointState',a.checkpointAvailable?'检查点已确认 · T '+fmt(a.lastCheckpointTick??0):'尚无已确认的检查点 · 可请求保存');
  }catch(e){text('status','连接失败 · 请从 Node.js 启动项目');text('proofText','原生 C++ 内核必须由项目服务端运行。执行 bash native/build.sh 然后 node server.js。');}}
 function send(resume=false){let data=Object.fromEntries(new FormData($('#config')));for(let k of ['seed','initial','capacity','ticks','mutation','resourceRate','season','climate','predation','sharing','cohesion','specialization','cooperation','integration','scavenging','plasticity','ecology','development','morphogenesis','softBody','collisionIndex','allContacts','regulatoryNetwork','bodyCap','neuronCap','edgeCap','founderNeurons','sparseBuckets','graphPool','contactCache','historyLedger','founderNodes','contactDedupe','quietActivityLimit','quietFluxTolerance','tissueCoupling','metabolicEcology','grand','habitats','transport','regionality','worldScale','scheduler','compute','lifeParallel','threads','sample'])data[k]=Number(data[k]);data.rate=resume?selectedRate:Number($('#startRate').value);data.resume=resume;data.visual=120;data.checkpointEvery=1000;
- return fetch('/api/native/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(async r=>{let a=await r.json();if(!r.ok)throw Error(a.error||r.status);if(!resume){samples=[];latest=null;previous=null;focusId=null;selectedEvent=null;historicTick=null;historyFrames=[];organismMoments=[];selectedEcotype=-1;lastRenderTick=-1;stopHistoryPlayback();$('#evolutionMoments').replaceChildren();lifeDossier(null);}return refresh();}).catch(e=>{text('status','实验启动失败');text('proofText',e.message);});}
+ return fetch('/api/native/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(async r=>{let a=await r.json();if(!r.ok)throw Error(a.error||r.status);if(!resume){sampledAncestry.clear();samples=[];latest=null;previous=null;focusId=null;selectedEvent=null;historicTick=null;historyFrames=[];organismMoments=[];selectedEcotype=-1;lastRenderTick=-1;stopHistoryPlayback();$('#evolutionMoments').replaceChildren();lifeDossier(null);}return refresh();}).catch(e=>{text('status','实验启动失败');text('proofText',e.message);});}
 $('#config').addEventListener('submit',e=>{e.preventDefault();send(false);});$('#resume').onclick=()=>send(true);
 $('#stop').onclick=async()=>{await fetch('/api/native/stop',{method:'POST'});await refresh();};
 $('#csv').onclick=()=>{if(!samples.length)return;let keys=['tick','population','maxGeneration','livingClasses','heritageClasses','meanNodes','meanNeurons','meanEnergy','meanThermalMismatch','births','deaths','exchanges','signals','predations','shares','activeBonds','connectedGroups','largestGroup','bondsFormed','bondsBroken','structuralMutations','complementaryPairs','propagulesBorn','propagulesMatured','organizationLineages','maxOrganizationGeneration','descendantOrganizationBirths','cooperativeDefenses','preventedLoss','integratedEvents','integratedHarvest','integratedCost','productiveOrganizations','scavenges','scavengedEnergy','subtreeCopies','reparentedBranches','feedbackMutations','soilEdits','soilMineralizations','nicheHarvests','developmentMutations','recycledMatter','ecologicalHarvest','nicheSensorCarriers','habitatOrganCarriers','meanNiche','metabolicEcology','cargoFoodUptake','cargoDetritusUptake','cargoFoodProcessed','cargoDetritusProcessed','metabolicHeat','habitats','transport','transportEvents','transportedDetritus','regionalMigrants','crossRegionMatter','regionality','worldScale','scheduler','compute','reusedOscillations','zeroTransportEdges','regionJobs','bodyArchitectures','largeBodyCarriers'];let csv=[keys.join(','),...samples.map(s=>keys.map(k=>s[k]??'').join(','))].join('\n');let a=document.createElement('a'),u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.href=u;a.download='EvoLab_v10_7_living_systems.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),3000);};
