@@ -76,7 +76,7 @@ fragColor=vec4(base,mask*vColor.a);}`;
       pts.push({x:p.x+(on?Math.cos(theta)*len*(realSurface?1:.58):0),y:p.y+(on?Math.sin(theta)*len*(realSurface?1:.58):0),theta,active:on,parent:pid,type:Math.max(0,Math.min(7,Math.trunc(n[1]||0))),motor:Number(n[8])||0,control:Number(n[6])||0,sense:Number(n[7])||0,thickness:realSurface?Number(n[10]):null,flexibility:realSurface?Number(n[11]):null,effective:realSurface?Number(n[12]):null,conductance:n.length>=16?Number(n[13]):null,stiffness:n.length>=16?Number(n[14]):null,tissueSignal:n.length>=16?Number(n[15]):null});
     }return pts;
   }
-  function current(){return (typeof latest!=='undefined'&&latest?.individuals?.find(a=>a[0]===focusId))||null;}
+  function current(){return (typeof latest!=='undefined'&&latest?.individuals?.find(a=>a[0]===focusId))||(observedSelection?.uid===focusId?observedSelection.individual:null)||null;}
   function findExpressed(){const list=latest?.individuals||[];if(!list.length)return null;const count=a=>{let v=0;for(const p of a[11]||[])if(p.length>9?p[9]:(a[8]/210>=p[4]))v++;return v;};const best=list.reduce((a,b)=>count(a)>count(b)?a:count(a)===count(b)&&a[6]>=b[6]?a:b);focusId=best[0];cameraX=best[1];cameraY=best[2];if(typeof lifeDossier==='function')lifeDossier(latest);return best;}
   function build(a,w,h){const n=topology(a);if(n.length===0)return {n,shapes:[]};
     const active=n.filter(p=>p.active),xs=active.map(p=>p.x),ys=active.map(p=>p.y);

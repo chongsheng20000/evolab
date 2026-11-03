@@ -1,1 +1,5 @@
 .v103-network{margin:10px;border:1px solid rgba(91,191,160,.35);border-radius:10px;background:#071f1e;color:#c3e9da;overflow:hidden}.v103-network summary{padding:12px;cursor:pointer;font-size:12px;font-weight:600}.v103-network small{color:#7caa9c;font-size:9px;margin-left:8px;letter-spacing:1px}.v103-network canvas{width:100%;height:auto;display:block;max-height:225px}.v103-network #v103GeneInfo{padding:9px 12px;color:#8bbcaf;font-size:11px;line-height:1.6}
+/* v10.12 source/canvas same-aspect viewport. v103 loads after v98 CSS. */
+.v98-world-column .worldStage{display:block!important;flex:0 0 auto!important;min-height:0!important;height:auto!important;}
+.v98-world-column .worldStage canvas#world{width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:55/36!important;object-fit:fill!important;}
+.v98-world-column .worldStage #livingGpu{min-height:0!important;}

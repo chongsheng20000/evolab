@@ -173,3 +173,15 @@ body{background:radial-gradient(ellipse 70% 22% at 55% -6%,rgba(47,97,83,.38),tr
 .v104-live-evidence{border-top:1px solid rgba(82,178,149,.24);padding:10px 14px;background:#0a2724;color:#a9d9c7;font-size:10px;line-height:1.65;letter-spacing:.08px}
 
 .v106-evidence{padding:10px 14px;margin:8px;color:#b9ebcf;background:linear-gradient(90deg,rgba(12,64,49,.9),rgba(7,34,34,.8));border:1px solid rgba(117,206,168,.26);border-radius:9px;font-size:11px;line-height:1.6;font-variant-numeric:tabular-nums}
+
+/* v10.12: intrinsic pixel aspect ratio must equal its CSS rectangle; no letterbox. */
+.worldStage #world{aspect-ratio:55/36!important;object-fit:fill!important;width:100%!important;height:auto!important;display:block!important}
+.worldStage{background:#081c18!important}
+#worldSettingsOpen{touch-action:manipulation}
+.observedGone{grid-column:1 / -1;color:#e7dcae;font-size:12px;line-height:1.65;padding:12px;border:1px solid #9e8a4c;border-radius:9px;background:#352a19}
+/* v10.12 correction: v98.css also imposed min-height:320–480px and flex stretch.
+   Those rules overrode the source canvas aspect and produced black letterbox strips.
+   Keep the backing pixel grid, displayed rectangle and GPU overlay congruent. */
+.v98-world-column .worldStage { display:block!important;flex:0 0 auto!important;min-height:0!important;height:auto!important;align-items:initial!important;}
+.v98-world-column .worldStage canvas#world {width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:55/36!important;object-fit:fill!important;}
+.v98-world-column .worldStage #livingGpu {min-height:0!important;max-height:none!important;}

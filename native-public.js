@@ -2,7 +2,7 @@
 // Public beta status overlay: never invents a simulation state.
 (() => {
  const banner=document.createElement('section');banner.className='public-banner';banner.setAttribute('role','status');
- banner.innerHTML='<div><b>🌐 EvoLab Ω · 功能生态公测</b><span id="publicCapacity">连接计算服务器…</span></div><small>每位访客拥有独立的 C++ 演化世界。服务器有并发与运行时间上限；检查点请自行下载。免费托管可能休眠。</small>';
+ banner.innerHTML='<div><b>🌐 EvoLab Ω · 生命观察稳定版</b><span id="publicCapacity">连接计算服务器…</span></div><small>每位访客拥有独立的 C++ 演化世界。服务器有并发与运行时间上限；检查点请自行下载。免费托管可能休眠。</small>';
  const style=document.createElement('style');style.textContent='.public-banner{display:flex;justify-content:space-between;align-items:center;gap:13px;padding:12px 17px;margin:10px 12px;border:1px solid #39695c;border-radius:12px;background:linear-gradient(100deg,#073b37,#0b221f);color:#d8f4e9;font:12px/1.45 system-ui,sans-serif}.public-banner>div{display:flex;flex-wrap:wrap;align-items:center;gap:15px}.public-banner b{font-size:14px;color:#bcf9df}.public-banner span{color:#dbd09d}.public-banner small{font-size:11px;color:#93bcb0}@media(max-width:700px){.public-banner{display:block}.public-banner small{display:block;margin-top:8px}}';
  document.head.append(style);document.body.prepend(banner);
  async function refresh(){try{const r=await fetch('/api/public/info',{cache:'no-store'});if(!r.ok)throw Error();const s=await r.json();document.querySelector('#publicCapacity').textContent=`计算席位 ${s.active}/${s.maxActive} · 单世界最多 ${s.capacity} 生命 · ${s.maxTicks.toLocaleString()} tick`;}
@@ -61,7 +61,7 @@
   panel.parentNode.insertBefore(placeholder,panel);
   const open=document.createElement('button');open.id='worldSettingsOpen';open.type='button';open.textContent='⚙ 世界参数';open.setAttribute('aria-controls',panel.id);
   const close=document.createElement('button');close.id='worldSettingsClose';close.type='button';close.textContent='关闭 ×';close.setAttribute('aria-label','关闭世界参数');
-  panel.prepend(close);document.body.appendChild(open);
+  panel.prepend(close);const banner=document.querySelector('.public-banner');if(banner)banner.appendChild(open);else document.body.appendChild(open);
   const overlay=document.createElement('button');overlay.id='worldSettingsBackdrop';overlay.type='button';overlay.setAttribute('aria-label','关闭参数界面');document.body.appendChild(overlay);
   const css=document.createElement('style');css.textContent=`
     html,body{min-height:100%;overflow-x:hidden;overflow-y:auto!important;overscroll-behavior-y:auto}
@@ -71,7 +71,7 @@
     .v109-ablation small{font-size:10px;line-height:1.65;color:#c3d5c8;display:block;margin-top:8px}
     @media(max-width:960px){
       #v98Settings{display:none!important}
-      #worldSettingsOpen{display:block;position:fixed;top:calc(75px + env(safe-area-inset-top));right:14px;z-index:1180;padding:12px 16px;border-radius:12px;border:1px solid #7db29e;background:#173d32;color:#d9f3e4;font:600 13px system-ui;box-shadow:0 6px 24px #0009}
+      #worldSettingsOpen{display:block;position:relative;top:auto;right:auto;z-index:2;padding:12px 16px;border-radius:12px;border:1px solid #7db29e;background:#173d32;color:#d9f3e4;font:600 13px system-ui;box-shadow:0 6px 24px #0009}
       #worldSettingsClose{display:block;position:sticky;top:0;z-index:2;width:100%;padding:12px;border:1px solid #487762;border-radius:9px;background:#193e33;color:#e3f9e6;text-align:right;font:700 13px system-ui}
       #worldSettingsDrawer{position:fixed!important;z-index:1201!important;top:0!important;bottom:0!important;right:0!important;left:auto!important;width:min(92vw,480px)!important;max-width:480px!important;max-height:100dvh!important;height:100dvh!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;transform:translateX(106%);visibility:hidden;transition:transform .22s ease,visibility .22s;background:#0c211c!important;padding:calc(10px + env(safe-area-inset-top)) 16px calc(110px + env(safe-area-inset-bottom))!important;box-shadow:-15px 0 50px #0008;display:block!important}
       #worldSettingsDrawer.drawer-open{transform:translateX(0);visibility:visible;opacity:1!important}
@@ -128,4 +128,28 @@
     style.textContent='.v98-right>.functional-evidence{margin:5px 9px 12px;padding:12px;border:1px solid #315f50;border-radius:8px;background:#0a2b24}.v98-right .fe-grid{grid-template-columns:1fr!important;gap:5px}.v98-right .fe-grid>div{padding:8px}.v98-right .fe-grid b{font-size:11px}.v98-right .fe-grid strong{font-size:10px}';document.head.append(style);
   }
   refresh();setInterval(refresh,3000);
+})();
+
+// v10.12: real-time observation controls; pause is a native C++ action, not a frozen animation.
+(() => {
+ window.evolabObserverAutoPause=true;
+ const banner=document.querySelector('.public-banner');if(banner){
+  const style=document.createElement('style');style.textContent=`
+  @media(max-width:960px){.public-banner{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 12px}.public-banner>div:first-child{grid-column:1;grid-row:1}.public-banner>small{grid-column:1;grid-row:2}.public-banner #worldSettingsOpen{grid-column:2;grid-row:1 / span 2;margin:0;align-self:center;max-width:135px;white-space:normal;font-size:12px;text-align:center}.public-banner{overflow:visible!important}}
+  #mobileWorldStart[disabled]{display:none!important}`;document.head.append(style);
+ }
+ const holder=document.querySelector('.worldStage');if(!holder)return;
+ const controls=document.createElement('div');controls.className='v1012-observer-controls';
+ controls.innerHTML='<button id="observerPauseOnSelect" type="button" aria-pressed="true">◉ 点击生命即暂停：开</button><button id="observerContinue" type="button" hidden>▶ 继续真实演化</button><small id="observerSamplingNote">观察数据来自 C++ 活体采样 · 并非补间生成的真实历史</small>';
+ holder.append(controls);
+ const css=document.createElement('style');css.textContent=`
+ .v1012-observer-controls{position:absolute;z-index:3;top:8px;right:8px;display:flex;flex-direction:column;align-items:flex-end;gap:6px;pointer-events:none;max-width:73%}
+ .v1012-observer-controls button{pointer-events:auto;min-height:32px;border:1px solid #72b8a3;border-radius:8px;background:#092d29e8;color:#d5f8eb;font:600 11px/1.2 system-ui;padding:7px 9px;box-shadow:0 2px 12px #0008}
+ .v1012-observer-controls #observerContinue{background:#c2dca8;color:#1a3122;border-color:#f0dea0}
+ .v1012-observer-controls small{font:10px system-ui;color:#cae6dc;text-shadow:0 1px 5px #000;background:#08221cb8;padding:4px 6px;border-radius:6px;max-width:270px;text-align:right}
+ @media(max-width:520px){.v1012-observer-controls{top:6px;right:5px;max-width:58%}.v1012-observer-controls button{font-size:10px;min-height:30px;padding:5px 7px}.v1012-observer-controls small{font-size:8px;max-width:170px}}`;document.head.append(css);
+ const toggle=controls.querySelector('#observerPauseOnSelect'),resume=controls.querySelector('#observerContinue'),hint=controls.querySelector('#observerSamplingNote');
+ toggle.onclick=()=>{window.evolabObserverAutoPause=!window.evolabObserverAutoPause;toggle.setAttribute('aria-pressed',String(window.evolabObserverAutoPause));toggle.textContent='◉ 点击生命即暂停：'+(window.evolabObserverAutoPause?'开':'关');};
+ resume.onclick=async()=>{try{const r=await fetch('/api/native/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'resume'})});if(!r.ok)throw Error((await r.json()).error||'未能继续');resume.hidden=true;}catch(e){hint.textContent=e.message;}};
+ setInterval(()=>{const paused=typeof serverPaused!=='undefined'&&serverPaused,phase=typeof serverPhase!=='undefined'?serverPhase:'idle',rate=typeof selectedRate!=='undefined'?selectedRate:0;resume.hidden=!(paused&&phase==='running');hint.textContent=rate>10?'高速演化：稀疏采样，不代表连续轨迹':(paused?'已暂停真实模拟，可放大身体':'低速观察：使用原生生命状态，不预写动作');},600);
 })();

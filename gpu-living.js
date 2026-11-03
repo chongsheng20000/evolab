@@ -48,7 +48,7 @@ function refreshMode(){if(mode==='cpu'){active=false;gpu.hidden=true;label.textC
 btn.onclick=()=>{mode=mode==='cpu'?'gpu':'cpu';refreshMode();};
 gpu.addEventListener('webglcontextlost',e=>{e.preventDefault();active=false;gpu.hidden=true;label.textContent='GPU 上下文丢失 · Canvas';},{passive:false});
 gpu.addEventListener('webglcontextrestored',()=>{gl=null;program=null;vao=null;active=false;if(mode!=='cpu')init();});
-function draw(map){if(!active||!gl)return;const colors=[[0.44,.88,.78],[.56,.77,.94],[.91,.74,.45],[.76,.94,.80],[.75,.63,.95],[.94,.69,.46],[.53,.87,.64],[.89,.82,.54]];const rows=[];
+function draw(map){if(!active||!gl)return;if(gpu.width!==world.width||gpu.height!==world.height){gpu.width=world.width;gpu.height=world.height;gl.useProgram(program);gl.uniform2f(gl.getUniformLocation(program,'uSize'),gpu.width,gpu.height);}const colors=[[0.44,.88,.78],[.56,.77,.94],[.91,.74,.45],[.76,.94,.80],[.75,.63,.95],[.94,.69,.46],[.53,.87,.64],[.89,.82,.54]];const rows=[];
 function add(ax,ay,bx,by,r,col,alpha){rows.push(ax,ay,bx,by,r,col[0],col[1],col[2],alpha);}
 let organismCount=0;
 for(const d of map.values()){

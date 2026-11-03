@@ -57,7 +57,15 @@ function portrait(a){const cv=$('#lifePortrait');if(!cv)return;const ctx=cv.getC
  ctx.shadowColor='#b1eedc';ctx.shadowBlur=12/scale;ctx.fillStyle=a[12]>.18?'#65cdb0':a[12]<-.18?'#d9ba88':'#9fcfbd';ctx.beginPath();ctx.ellipse(0,0,4.5,3.1,0,0,Math.PI*2);ctx.fill();ctx.restore();
  ctx.fillStyle='#96b8b0';ctx.font='10px system-ui';ctx.textAlign='left';ctx.fillText(n+' 发育节点 · '+active.length+' 已表达',11,h-11);
 }
-function lifeDossier(s){const el=$('#lifeDetails');if(!el)return;let a=s?.individuals?.find(i=>i[0]===focusId);portrait(a);if(!a){el.textContent=focusId?'当前采样中未发现这只生命；它可能死亡或离开抽样范围。':'点击生态场中的生命，查看其实际身体与遗传状态。';return;}
+function lifeDossier(s){const el=$('#lifeDetails');if(!el)return;let a=s?.individuals?.find(i=>i[0]===focusId);if(a){observedSelection={uid:focusId,individual:a.slice(),tick:s.tick};observedTick=s.tick;}portrait(a||(observedSelection?.uid===focusId?observedSelection.individual:null));if(!a){
+    if(focusId&&observedSelection?.uid===focusId){
+      el.replaceChildren();const note=document.createElement('div');note.className='observedGone';
+      note.textContent=`生命 #${focusId} 当前未进入采样。最后一次真实观察 T ${observedSelection.tick}，其身体记录仍可查看。不能判断它是死亡、迁移还是被抽样省略。`;
+      const inspect=document.createElement('button');inspect.type='button';inspect.textContent='查看最后一次真实身体结构';inspect.onclick=()=>portrait(observedSelection.individual);
+      el.append(note,inspect);return;
+    }
+    el.textContent=focusId?'当前采样没有该 UID，不能据此判断死亡。':'点击生命观察其真实遗传身体。';return;
+  }
  const currentLink=(s.lineageLinks||[]).find(x=>x[0]===focusId);
  const tracked=currentLink||sampledAncestry.get(focusId)?.link;
  const parent=tracked?.[1] ? sampledAncestry.get(tracked[1])?.link : null;
@@ -91,14 +99,59 @@ const labels={generation:'maxGeneration',population:'population',births:'births'
 const fmt=x=>typeof x==='number'?x.toLocaleString('zh-CN',{maximumFractionDigits:2}):'—';
 const text=(id,value)=>{let el=$('#'+id);if(el&&el.textContent!==String(value))el.textContent=String(value);};
 const lerp=(a,b,t)=>a+(b-a)*t;
-function coords(){let map=new Map(),alpha=historicTick!==null?1:Math.min(1,(performance.now()-arrival)/frameInterval);let old=new Map((previous?.individuals||[]).map(a=>[a[0],a]));
- for(const individual of latest?.individuals||[]){let a=old.get(individual[0]),x=individual[1],y=individual[2],h=individual[3];
-  if(a&&Math.hypot(x-a[1],y-a[2])<230){x=lerp(a[1],x,alpha);y=lerp(a[2],y,alpha);let dh=Math.atan2(Math.sin(h-a[3]),Math.cos(h-a[3]));h=a[3]+dh*alpha;}
-  let delta=0,oldParts=a?.[11];let parts=individual[11];
-  // Only interpolate joint angles for the same tracked individual and matching topology.
-  if(a&&oldParts&&parts&&oldParts.length===parts.length&&alpha<1){parts=parts.map((n,k)=>{let q=oldParts[k];if(!q||q[0]!==n[0]||q[1]!==n[1])return n;let diff=Math.atan2(Math.sin(n[5]-q[5]),Math.cos(n[5]-q[5]));return [...n.slice(0,5),q[5]+diff*alpha,...n.slice(6)];});}
-  map.set(individual[0],{x:W/2+(x-cameraX)*zoom*W/worldWidth,y:H/2+(y-cameraY)*zoom*H/worldHeight,h,individual,parts,worldX:x,worldY:y});
- }return map;}
+// On-screen positions are a filtered presentation of the REAL sampled UID state.
+// Never fabricate trajectories across large temporal gaps or uid changes.
+const visualPoses=new Map();
+let lastPoseUpdate=0,observedSelection=null,observedTick=-1;
+function coords(){
+ const output=new Map(),now=performance.now(),dt=Math.min(90,Math.max(1,now-(lastPoseUpdate||now-25)));
+ lastPoseUpdate=now;
+ const measured=new Set(),liveSamples=latest?.individuals||[];
+ for(const individual of liveSamples){
+  const uid=individual[0];measured.add(uid);
+  let pose=visualPoses.get(uid);
+  const x=individual[1],y=individual[2],h=individual[3];
+  if(!pose || historicTick!==null || latest.tick<pose.tick){pose={x,y,h,tick:latest.tick,parts:individual[11],lastSeen:now,alpha:1};}
+  else if(latest.tick!==pose.tick){
+   // A jump of 12+ ticks cannot be reconstructed from endpoints; present the
+   // authoritative state immediately instead of drawing a fictitious path.
+   const skipped=latest.tick-pose.tick;
+   const dist=Math.hypot(x-pose.x,y-pose.y);
+   if(skipped>12 || dist>Math.max(15,skipped*4.5)){pose.x=x;pose.y=y;pose.h=h;pose.parts=individual[11];}
+   pose.tick=latest.tick;
+  }
+  if(historicTick===null&&latest.tick===pose.tick){
+   // Frame-rate independent low-pass movement; only interpolates small verified
+   // same-UID differences between adjacent physical observations.
+   const old=previous?.individuals?.find(a=>a[0]===uid);
+   const fraction=1-Math.exp(-dt/95);
+   const fromTick=old&&previous?.tick;
+   if(fromTick!=null && latest.tick-fromTick<=12 && Math.hypot(x-old[1],y-old[2])<=Math.max(15,(latest.tick-fromTick)*4.5)){
+     pose.x=lerp(pose.x,x,fraction);pose.y=lerp(pose.y,y,fraction);
+     const dh=Math.atan2(Math.sin(h-pose.h),Math.cos(h-pose.h));pose.h+=dh*fraction;
+     const oldParts=pose.parts,parts=individual[11];
+     if(oldParts?.length===parts?.length){pose.parts=parts.map((node,j)=>{
+       const before=oldParts[j];if(!before||before[0]!==node[0]||before[1]!==node[1])return node;
+       const dh=Math.atan2(Math.sin(node[5]-before[5]),Math.cos(node[5]-before[5]));
+       return [...node.slice(0,5),before[5]+fraction*dh,...node.slice(6)];
+     });}else pose.parts=parts;
+   }else{pose.x=x;pose.y=y;pose.h=h;pose.parts=individual[11];}
+  }
+  pose.lastSeen=now;pose.alpha=1;visualPoses.set(uid,pose);
+  output.set(uid,{x:W/2+(pose.x-cameraX)*zoom*W/worldWidth,y:H/2+(pose.y-cameraY)*zoom*H/worldHeight,h:pose.h,
+    individual,parts:pose.parts,worldX:pose.x,worldY:pose.y,displayAlpha:1,historical:false});
+ }
+ for(const [uid,pose] of visualPoses){
+   if(!measured.has(uid)){
+     // No ghost life displayed as alive: a small fading trail is merely
+     // historical optical afterglow, and explicitly not an observed living UID.
+     if(now-pose.lastSeen>260 || historicTick!==null)visualPoses.delete(uid);
+     // Do NOT add missing UIDs to output; only actual current sampling is drawn.
+   }
+ }
+ if(visualPoses.size>600){for(const uid of visualPoses.keys()){if(!measured.has(uid))visualPoses.delete(uid);if(visualPoses.size<=500)break;}}
+ return output;
+}
 function background(){let grad=ctx.createLinearGradient(0,0,W,H);grad.addColorStop(0,'#122923');grad.addColorStop(.50,'#0b1f1b');grad.addColorStop(1,'#07130f');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
  // Render sampled resource field using engine values (not painted fake ecology).
  const heat=ecologyLayer==='soil'?latest?.soilGrid:ecologyLayer==='detritus'?latest?.detritusGrid:ecologyLayer==='ecotype'?latest?.ecotypeGrid:ecologyLayer==='habitat'?latest?.habitatGrid:ecologyLayer==='density'?latest?.densityGrid:ecologyLayer==='regional'?(()=>{const n=Number(latest?.worldScale||1),w=16*n,h=10*n,prof=latest?.regionProfiles||[];return Array.from({length:w*h},(_,i)=>prof[Math.floor(i/w/10)*n+Math.floor(i%w/16)]?.resourceFactor??1);})():ecologyLayer==='off'?null:latest?.resourceGrid;
@@ -248,10 +301,10 @@ let newScale=Number(s.worldScale||1);if(newScale!==worldScale){worldScale=newSca
  if(!seek&&historicTick===null&&s.tick!==lastRenderTick){recordMoments(s,oldState);lastRenderTick=s.tick;}
  const now=performance.now();if(!seek&&lastFrameArrived)frameInterval=Math.max(80,Math.min(1050,now-lastFrameArrived));if(!seek)lastFrameArrived=now;
  arrival=now;
- for(let [id,key] of Object.entries(labels))text(id,fmt(s[key]));text('pulseSubtree',fmt(s.subtreeCopies||0));text('pulseReparent',fmt(s.reparentedBranches||0));text('pulseFeedback',fmt(s.feedbackMutations||0));text('pulseCarriers',fmt(s.feedbackCarriers||0));text('range','T '+fmt(s.tick));text('grandHarvests',fmt(s.extendedHarvests||0));text('grandEnergy',fmt(s.extendedEnergy||0));text('transportedDetritus',fmt(s.transportedDetritus||0));text('gradientCarriers',fmt(s.gradientCarriers||0));renderEcotypes(s);text('fieldGen','G '+fmt(s.maxGeneration));text('fieldPop',fmt(s.population)+' 活跃生命');text('fieldTempo','T '+fmt(s.tick)+' · 模型计算时间');lifeDossier(s);text('frameHint',`T ${fmt(s.tick)} · ${fmt(s.individuals?.length||0)} 样本`);
+ for(let [id,key] of Object.entries(labels))text(id,fmt(s[key]));text('pulseSubtree',fmt(s.subtreeCopies||0));text('pulseReparent',fmt(s.reparentedBranches||0));text('pulseFeedback',fmt(s.feedbackMutations||0));text('pulseCarriers',fmt(s.feedbackCarriers||0));text('range','T '+fmt(s.tick));text('grandHarvests',fmt(s.extendedHarvests||0));text('grandEnergy',fmt(s.extendedEnergy||0));text('transportedDetritus',fmt(s.transportedDetritus||0));text('gradientCarriers',fmt(s.gradientCarriers||0));renderEcotypes(s);text('fieldGen','G '+fmt(s.maxGeneration));text('fieldPop',fmt(s.population)+' 活跃生命');text('fieldTempo','T '+fmt(s.tick)+' · 模型计算时间');lifeDossier(s);text('frameHint',`T ${fmt(s.tick)} · ${fmt(s.individuals?.length||0)} / ${fmt(s.population)} 活体已采样`);
  text('proofText',`第 ${fmt(s.maxGeneration)} 代 · ${fmt(s.births)} 次出生 · ${fmt(s.structuralMutations)} 次结构变异 · ${fmt(s.livingClasses)} 个存活结构签名。当前平均温度偏差 ${fmt(s.meanThermalMismatch)}。目前有 ${fmt(s.activeBonds||0)} 条活动连接和 ${fmt(s.connectedGroups||0)} 个候选联合体；联合后代事件 ${fmt(s.propagulesBorn||0)} 次，已有 ${fmt(s.propagulesMatured||0)} 对持续到 50 tick，最高组织谱系第 ${fmt(s.maxOrganizationGeneration||0)} 代，其中二代以上繁殖 ${fmt(s.descendantOrganizationBirths||0)} 次。累计协同觅食 ${fmt(s.integratedEvents||0)} 次、已解体且有后代的组织 ${fmt(s.productiveOrganizations||0)} 个；这些不是已证实的多细胞生命。身体子树复制 ${fmt(s.subtreeCopies||0)} 次、分支重连 ${fmt(s.reparentedBranches||0)} 次、递归神经变异 ${fmt(s.feedbackMutations||0)} 次，均来自可遗传的结构变化。形态新颖性不等于适应性创新或更高级物种。`);
  if(s.tick!==seenTick){seenTick=s.tick;eventLog();}drawChart();}
-async function refresh(){try{let r=await fetch('/api/native/status',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);let a=await r.json();samples=a.samples||[];drawEcotypeTimeline();serverPhase=a.phase;serverPaused=!!a.paused;
+let refreshPending=false;async function refresh(){if(refreshPending)return;refreshPending=true;try{let r=await fetch('/api/native/status',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);let a=await r.json();samples=a.samples||[];drawEcotypeTimeline();serverPhase=a.phase;serverPaused=!!a.paused;
  liveFrame=a.last||null;historyFrames=a.frames||[];
  const busy=a.phase==='running';const rate=a.rate??1;
  selectedRate=rate;
@@ -271,9 +324,9 @@ async function refresh(){try{let r=await fetch('/api/native/status',{cache:'no-s
  $('#statusDot').style.background=a.phase==='running'?'#b5e1ad':'#789987';$('#start').disabled=a.phase==='running'||a.phase==='stopping';$('#resume').disabled=!a.checkpointAvailable||a.phase==='running'||a.phase==='stopping';
  if(historicTick===null&&a.last&&(!latest||a.last.tick!==latest.tick)){render(a.last);}else if(!latest){drawWorld();drawChart();}if(a.error)text('proofText',a.error);
  text('checkpointState',a.checkpointAvailable?'检查点已确认 · T '+fmt(a.lastCheckpointTick??0):'尚无已确认的检查点 · 可请求保存');
- }catch(e){text('status','连接失败 · 请从 Node.js 启动项目');text('proofText','原生 C++ 内核必须由项目服务端运行。执行 bash native/build.sh 然后 node server.js。');}}
-function send(resume=false){let data=Object.fromEntries(new FormData($('#config')));for(let k of ['seed','initial','capacity','ticks','mutation','resourceRate','season','climate','predation','sharing','cohesion','specialization','cooperation','integration','scavenging','plasticity','ecology','development','morphogenesis','softBody','collisionIndex','allContacts','regulatoryNetwork','bodyCap','neuronCap','edgeCap','founderNeurons','sparseBuckets','graphPool','contactCache','historyLedger','founderNodes','contactDedupe','quietActivityLimit','quietFluxTolerance','tissueCoupling','metabolicEcology','grand','habitats','transport','regionality','worldScale','scheduler','compute','lifeParallel','threads','sample'])data[k]=Number(data[k]);data.rate=resume?selectedRate:Number($('#startRate').value);data.resume=resume;data.visual=120;data.checkpointEvery=1000;
- return fetch('/api/native/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(async r=>{let a=await r.json();if(!r.ok)throw Error(a.error||r.status);if(!resume){sampledAncestry.clear();samples=[];latest=null;previous=null;focusId=null;selectedEvent=null;historicTick=null;historyFrames=[];organismMoments=[];selectedEcotype=-1;lastRenderTick=-1;stopHistoryPlayback();$('#evolutionMoments').replaceChildren();lifeDossier(null);}return refresh();}).catch(e=>{text('status','实验启动失败');text('proofText',e.message);});}
+ }catch(e){text('status','连接暂时失败 · 正在重试');text('proofText','服务器可能正在冷启动或网络中断；没有修改真实世界状态。');}finally{refreshPending=false;}}
+function send(resume=false){let data=Object.fromEntries(new FormData($('#config')));for(let k of ['seed','initial','capacity','ticks','mutation','resourceRate','season','climate','predation','sharing','cohesion','specialization','cooperation','integration','scavenging','plasticity','ecology','development','morphogenesis','softBody','collisionIndex','allContacts','regulatoryNetwork','bodyCap','neuronCap','edgeCap','founderNeurons','sparseBuckets','graphPool','contactCache','historyLedger','founderNodes','contactDedupe','quietActivityLimit','quietFluxTolerance','tissueCoupling','metabolicEcology','grand','habitats','transport','regionality','worldScale','scheduler','compute','lifeParallel','threads','sample'])data[k]=Number(data[k]);data.rate=resume?selectedRate:Number($('#startRate').value);data.resume=resume;data.visual=200;data.checkpointEvery=1000;
+ return fetch('/api/native/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(async r=>{let a=await r.json();if(!r.ok)throw Error(a.error||r.status);if(!resume){sampledAncestry.clear();samples=[];latest=null;previous=null;visualPoses.clear();observedSelection=null;focusId=null;selectedEvent=null;historicTick=null;historyFrames=[];organismMoments=[];selectedEcotype=-1;lastRenderTick=-1;stopHistoryPlayback();$('#evolutionMoments').replaceChildren();lifeDossier(null);}return refresh();}).catch(e=>{text('status','实验启动失败');text('proofText',e.message);});}
 $('#config').addEventListener('submit',e=>{e.preventDefault();send(false);});$('#resume').onclick=()=>send(true);
 $('#stop').onclick=async()=>{await fetch('/api/native/stop',{method:'POST'});await refresh();};
 $('#csv').onclick=()=>{if(!samples.length)return;let keys=['tick','population','maxGeneration','livingClasses','heritageClasses','meanNodes','meanNeurons','meanEnergy','meanThermalMismatch','births','deaths','exchanges','signals','predations','shares','activeBonds','connectedGroups','largestGroup','bondsFormed','bondsBroken','structuralMutations','complementaryPairs','propagulesBorn','propagulesMatured','organizationLineages','maxOrganizationGeneration','descendantOrganizationBirths','cooperativeDefenses','preventedLoss','integratedEvents','integratedHarvest','integratedCost','productiveOrganizations','scavenges','scavengedEnergy','subtreeCopies','reparentedBranches','feedbackMutations','soilEdits','soilMineralizations','nicheHarvests','developmentMutations','recycledMatter','ecologicalHarvest','nicheSensorCarriers','habitatOrganCarriers','meanNiche','metabolicEcology','cargoFoodUptake','cargoDetritusUptake','cargoFoodProcessed','cargoDetritusProcessed','metabolicHeat','habitats','transport','transportEvents','transportedDetritus','regionalMigrants','crossRegionMatter','regionality','worldScale','scheduler','compute','reusedOscillations','zeroTransportEdges','regionJobs','bodyArchitectures','largeBodyCarriers'];let csv=[keys.join(','),...samples.map(s=>keys.map(k=>s[k]??'').join(','))].join('\n');let a=document.createElement('a'),u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.href=u;a.download='EvoLab_v10_7_living_systems.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),3000);};
@@ -305,7 +358,7 @@ $('#followInheritance').onclick=()=>{if(!latest?.bonds?.length){text('selectedRe
 };
 $('#overview').onclick=()=>{cameraX=worldWidth/2;cameraY=worldHeight/2;zoom=1;$('#viewScale').value='1';focusId=null;selectedEvent=null;};
 $('#clearSelection').onclick=()=>{focusId=null;selectedEvent=null;lifeDossier(latest);text('selectedRelation','点击事件定位交互双方；虚线为历史关系，非持续接触。');};
-world.addEventListener('click',e=>{if(dragged){dragged=false;return;}if(!latest)return;let b=world.getBoundingClientRect(),px=(e.clientX-b.left)/b.width*W,py=(e.clientY-b.top)/b.height*H,m=coords(),best=24,id=null;for(let [uid,d] of m){let dis=Math.hypot(d.x-px,d.y-py);if(dis<best){best=dis;id=uid;}}if(id){focusId=id;selectedEvent=null;let selected=m.get(id);if(selected){cameraX=selected.worldX;cameraY=selected.worldY;}lifeDossier(latest);text('selectedRelation',`已选中生命 #${id} · 查看其身体与最近关系`);}});
+world.addEventListener('click',e=>{if(dragged){dragged=false;return;}if(!latest)return;let b=world.getBoundingClientRect(),px=(e.clientX-b.left)/b.width*W,py=(e.clientY-b.top)/b.height*H,m=coords(),best=24,id=null;for(let [uid,d] of m){let dis=Math.hypot(d.x-px,d.y-py);if(dis<best){best=dis;id=uid;}}if(id){focusId=id;selectedEvent=null;let selected=m.get(id);if(selected){cameraX=selected.worldX;cameraY=selected.worldY;}lifeDossier(latest);text('selectedRelation',`已选中生命 #${id} · 查看其身体与最近关系`);if(window.evolabObserverAutoPause!==false&&serverPhase==='running'&&!serverPaused)sendControl('pause');}});
 async function sendControl(action,rate){try{let r=await fetch('/api/native/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,rate})});let j=await r.json();if(!r.ok)throw Error(j.error||'控制失败');await refresh();}catch(e){text('status',e.message);}}
 for(const b of speedButtons){b.onclick=()=>{const r=Number(b.dataset.rate);selectedRate=r;$('#startRate').value=String(r);speedButtons.forEach(x=>x.classList.toggle('active',x===b));if(serverPhase==='running')sendControl('rate',r);}};
 $('#pauseEngine').onclick=()=>sendControl(serverPaused?'resume':'pause');
@@ -377,4 +430,4 @@ let lastDraw=0;function animate(t){if(t-lastDraw>25){
  if(focusId&&historicTick===null&&latest?.individuals){const a=latest.individuals.find(i=>i[0]===focusId),b=selectedEvent?latest.individuals.find(i=>i[0]===selectedEvent[2]):null;
  if(a){const tx=b?(a[1]+b[1])*.5:a[1],ty=b?(a[2]+b[2])*.5:a[2];cameraX=lerp(cameraX,tx,.10);cameraY=lerp(cameraY,ty,.10);}}
  drawWorld();lastDraw=t;}requestAnimationFrame(animate);}requestAnimationFrame(animate);
-setInterval(refresh,850);refresh();
+setInterval(refresh,320);refresh();
