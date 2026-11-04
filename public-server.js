@@ -60,8 +60,8 @@ function acceptedOpts(input){if(input.organAblation!==undefined&&!['none','absor
  return o;
 }
 async function handler(req,res){safeHeaders(res);let pathname;try{pathname=new URL(req.url,'http://localhost').pathname;}catch{return respond(res,400,{error:'无效路径'});}
- if(req.method==='GET'&&pathname==='/healthz')return respond(res,200,{ok:true,version:'v10.12-living-observatory',active:activeCount(),maxActive:MAX_ACTIVE});
- if(req.method==='GET'&&pathname==='/api/public/info')return respond(res,200,{version:'v10.12-living-observatory',active:activeCount(),maxActive:MAX_ACTIVE,capacity:350,maxTicks:12000,sessionPersistence:'memory; download checkpoints before restart',note:'每位访客独立 C++ 模拟；免费云实例可能休眠'});
+ if(req.method==='GET'&&pathname==='/healthz')return respond(res,200,{ok:true,version:'v10.12.1-stable-observation',active:activeCount(),maxActive:MAX_ACTIVE});
+ if(req.method==='GET'&&pathname==='/api/public/info')return respond(res,200,{version:'v10.12.1-stable-observation',active:activeCount(),maxActive:MAX_ACTIVE,capacity:350,maxTicks:12000,sessionPersistence:'memory; download checkpoints before restart',note:'每位访客独立 C++ 模拟；免费云实例可能休眠'});
  if(req.method==='GET'&&pathname==='/'){res.writeHead(302,{Location:'/native.html'});return res.end();}
  if(req.method==='GET'&&staticMap[pathname]){
    if(pathname==='/native.html'&&!resolveSession(req,res))return respond(res,503,{error:'访客会话已达上限'});

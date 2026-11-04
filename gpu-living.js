@@ -71,5 +71,13 @@ for(const d of map.values()){
 refreshMode();
 // Maintain original 2D world overlays; GPU renders only visual bodies.
 const legacyOrganism=organism;organism=function(map){if(!active)legacyOrganism(map);};
-const originalDrawWorld=drawWorld;drawWorld=function(){originalDrawWorld();if(active&&latest?.individuals?.length)draw(coords());else if(active){gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);}};
+const originalDrawWorld=drawWorld;
+drawWorld=function(){
+ // Use the *same* displayed UID poses already computed for the Canvas
+ // relationship/selection overlays. A second coords() call per frame was
+ // advancing the position smoother twice and causing CPU/GPU disagreement.
+ const mapped=originalDrawWorld();
+ if(active&&latest?.individuals?.length)draw(mapped||lastRenderedCoords);
+ else if(active){gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);}
+};
 })();

@@ -190,11 +190,13 @@ function organism(m){for(let d of m.values()){let i=d.individual,[id,x,y,h,energ
   if(isFocus){ctx.shadowColor='#c7f0d1';ctx.shadowBlur=12;ctx.strokeStyle='#e2eed3';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,r+8,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;}
   ctx.shadowColor=isFocus?"#a9e3c5":"transparent";ctx.shadowBlur=isFocus?8:0;ctx.fillStyle=roleBias>.18?'#65cdb0':roleBias<-.18?'#d9ba88':`hsl(${baseHue},${44+Math.min(30,nodes)}%,${47+stage*12}%)`;ctx.strokeStyle='rgba(215,240,220,.6)';ctx.lineWidth=.8;ctx.beginPath();ctx.ellipse(0,0,r*1.3,r*.74,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.strokeStyle='#ccebd8';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(r*1.7,0);ctx.stroke();ctx.restore();}
 }
+let lastRenderedCoords=new Map();
 function drawWorld(){background();if(worldScale>1){ctx.save();ctx.strokeStyle='rgba(225,239,195,.38)';ctx.setLineDash([9,8]);ctx.lineWidth=1.3;
  for(let t=1;t<worldScale;t++){let x=W/2+(1300*t-cameraX)*zoom*W/worldWidth,y=H/2+(850*t-cameraY)*zoom*H/worldHeight;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
- ctx.restore();}if(!latest?.individuals?.length){ctx.fillStyle='#9fb8a8';ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText('启动原生演化实验，以查看真实种群抽样',W/2,H/2);return;}let m=coords();relationCanvas(m);bondCanvas(m);organism(m);
+ ctx.restore();}if(!latest?.individuals?.length){ctx.fillStyle='#9fb8a8';ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText('启动原生演化实验，以查看真实种群抽样',W/2,H/2);lastRenderedCoords=new Map();return lastRenderedCoords;}let m=coords();lastRenderedCoords=m;relationCanvas(m);bondCanvas(m);organism(m);
  ctx.fillStyle='#c8d8ca';ctx.font='12px system-ui';ctx.textAlign='left';ctx.fillText(`T ${fmt(latest.tick)} · 抽样 ${latest.individuals.length} / ${fmt(latest.population)} 个体`,19,27);
  if(focusId){let d=m.get(focusId);if(d){ctx.strokeStyle='rgba(240,246,210,.35)';ctx.beginPath();ctx.arc(d.x,d.y,18*zoom,0,Math.PI*2);ctx.stroke();}}
+ return m;
 }
 function drawChart(){let w=chart.width,h=chart.height;gc.clearRect(0,0,w,h);gc.strokeStyle='#344f42';gc.lineWidth=1;for(let k=0;k<4;k++){let y=20+k*(h-40)/3;gc.beginPath();gc.moveTo(20,y);gc.lineTo(w-15,y);gc.stroke();}if(samples.length<2)return;let maxTick=samples[samples.length-1].tick||1;
  for(let [key,color] of [['population','#94d0b7'],['maxGeneration','#e2be81'],['meanNodes','#a3b9de'],['connectedGroups','#d5bf80'],['propagulesBorn','#f7e2b0']]){let v=Math.max(1,...samples.map(s=>s[key]||0));gc.strokeStyle=color;gc.lineWidth=2;gc.beginPath();samples.forEach((s,i)=>{let x=20+(w-40)*s.tick/maxTick,y=h-20-(h-45)*(s[key]||0)/v;i?gc.lineTo(x,y):gc.moveTo(x,y);});gc.stroke();}}
@@ -391,7 +393,14 @@ $('#backLive').onclick=()=>{stopHistoryPlayback();historicTick=null;previous=nul
 // Single finger pans; two fingers pinch without altering any life/world state.
 world.style.touchAction='none';
 const pointers=new Map();let pinchStart=null;
-function cameraClamp(){cameraX=Math.max(0,Math.min(worldWidth,cameraX));cameraY=Math.max(0,Math.min(worldHeight,cameraY));}
+function cameraClamp(){
+ // At zoom>=1 the visible world must stay inside the REAL simulation domain.
+ // Previously the center was clamped to [0,width], exposing the dark area
+ // outside the resource field as hard green/black horizontal boundaries.
+ const halfX=worldWidth/(2*Math.max(1,zoom)),halfY=worldHeight/(2*Math.max(1,zoom));
+ cameraX=Math.max(halfX,Math.min(worldWidth-halfX,cameraX));
+ cameraY=Math.max(halfY,Math.min(worldHeight-halfY,cameraY));
+}
 function canvasXY(x,y){const b=world.getBoundingClientRect();return {x:(x-b.left)/b.width*W,y:(y-b.top)/b.height*H};}
 function changeZoom(factor,px=W/2,py=H/2){
  const old=zoom;zoom=Math.max(1,Math.min(256,zoom*factor));
@@ -429,5 +438,5 @@ world.addEventListener('wheel',e=>{e.preventDefault();const point=canvasXY(e.cli
 let lastDraw=0;function animate(t){if(t-lastDraw>25){
  if(focusId&&historicTick===null&&latest?.individuals){const a=latest.individuals.find(i=>i[0]===focusId),b=selectedEvent?latest.individuals.find(i=>i[0]===selectedEvent[2]):null;
  if(a){const tx=b?(a[1]+b[1])*.5:a[1],ty=b?(a[2]+b[2])*.5:a[2];cameraX=lerp(cameraX,tx,.10);cameraY=lerp(cameraY,ty,.10);}}
- drawWorld();lastDraw=t;}requestAnimationFrame(animate);}requestAnimationFrame(animate);
+ cameraClamp();drawWorld();lastDraw=t;}requestAnimationFrame(animate);}requestAnimationFrame(animate);
 setInterval(refresh,320);refresh();
